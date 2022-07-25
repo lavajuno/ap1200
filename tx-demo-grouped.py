@@ -1,0 +1,22 @@
+from ap1200 import NetworkInterface
+
+print("AP1200 Grouped TX Demo")
+print("Homepage: https://radio.jmeifert.org/adr-cfs")
+print("Updates: https://github.com/jmeifert/adr-cfs/releases")
+print("Enter source callsign/ID")
+source_id = input(":")
+print("Enter source port (0-255)")
+port = int(input(":"))
+ni = NetworkInterface(source_id, port)
+while True:
+    print("Enter message string (ASCII):")
+    user_message = input()
+    print("Enter dest callsign/ID")
+    dest_id = input(":")
+    encoded_message = user_message.encode("ascii", "ignore")
+    print("Transmitting...")
+    p = ni.make_packet(encoded_message, dest_id)
+    gp = ni.make_packet(p.save() + p.save(), dest_id)
+    gp.set_group_flag(True)
+    ni.send_packet(gp)
+    print("Done. (CTRL-C to exit)\n")
