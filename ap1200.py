@@ -4,7 +4,7 @@ from datetime import datetime
 """
 x-----------------------------------------------------------x
 | AP1200 - A simple, reliable amateur packet radio protocol |
-| https://github.com/jmeifert/adr-cfs                       |
+| https://github.com/lavajuno/ap1200                        |
 x-----------------------------------------------------------x
 """
 ################################################################################ LOGGING
