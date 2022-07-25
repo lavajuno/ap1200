@@ -1,8 +1,8 @@
 from ap1200 import NetworkInterface
 
 print("ap1200 TX Demo")
-print("Homepage: https://radio.jmeifert.org/adr-cfs")
-print("Updates: https://github.com/jmeifert/adr-cfs/releases")
+print("Homepage: https://radio.jmeifert.org/ap1200")
+print("Updates: https://github.com/jmeifert/ap1200/releases")
 print("Enter source callsign/ID")
 source_addr = input(":")
 print("Enter source port (0-255)")
@@ -15,6 +15,6 @@ while True:
     dest_id = input(":")
     encoded_message = user_message.encode("ascii", "ignore")
     print("Transmitting...")
-    p = ni.make_packet(encoded_message, dest_id)
+    p = ni.make_packet(dest_id, encoded_message)
     ni.send_packet(p)
     print("Done. (CTRL-C to exit)\n")

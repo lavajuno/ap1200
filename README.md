@@ -20,18 +20,18 @@ A python script implementing AP1200, an asynchronous network-layer protocol for 
 
 ### Packet:
 #### Parameters:
-> data: (optional, bytes, len<=1024, default:b'') Data to transmit
-
 > src_id: (required, str, "12345678") Source address
 
 > dest_id: (required, str, "12345678") Destination address
 
-> destPort: (required, int, 0-255) Destination port
+> port: (optional, int, 0-255, default:0) Port
+
+> data: (optional, bytes, len<=1024, default:b'') Data to transmit
 
 #### Functions:
-> str <- get_source(): Get the Packet's source ID ("255.255.255.255")
+> str <- get_source(): Get the Packet's source ID ("12345678")
 
-> str <- get_dest(): Get the Packet's destination ID ("255.255.255.255")
+> str <- get_dest(): Get the Packet's destination ID ("12345678")
 
 > int <- get_port(): Get the Packet's port (0-255)
 

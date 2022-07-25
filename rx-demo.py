@@ -1,6 +1,6 @@
 from ap1200 import NetworkInterface
 
-print("ap1200 RX Demo")
+print("AP1200 RX Demo")
 print("Homepage: https://radio.jmeifert.org/ap1200")
 print("Updates: https://github.com/jmeifert/ap1200/releases")
 print("Enter ID to listen on (BLANK:ANY)")
@@ -34,8 +34,8 @@ while(True):
     print("\nPacket received (Integrity: " + str(p_integrity) + "%)")
     if(p_integrity < 70):
         print("WARNING: Low packet integrity. Uncorrectable errors may be present.")
-    print(str(p_source) + " -> " + str(p_dest) + " [" + str(p_port)
-     + "] (F: " + p_flag + ", L: " + str(p_length) + "):")
+    print(str(p_source) + " -> " + str(p_dest) + " (" + str(p_port)
+     + ") [F: " + p_flag + ", L: " + str(p_length) + "]:")
 
     # handle contents
     if(p.is_group_flag()):
@@ -45,11 +45,11 @@ while(True):
         for i in gp:
             i_source = i.get_source()
             i_dest = i.get_dest()
-            i_port = i._port()
+            i_port = i.get_port()
             i_flag = i.get_flags()
             i_length = i.get_length()
             i_data = i.get_data()
-            print(i_source + " -> " + i_dest + " [" + str(i_port) + "] (F: " + i_flag + ", L: " + str(i_length) + "):")
+            print(i_source + " -> " + i_dest + " (" + str(i_port) + ") [F: " + i_flag + ", L: " + str(i_length) + "]:")
             print(i_data.decode("ascii", "ignore"))
     else:
         # if not a group print the packet's data

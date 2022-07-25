@@ -111,7 +111,7 @@ class RadioInterface:
 
 ################################################################################ Packet structure and operations
 class Packet:
-    def __init__(self, n_source = "", n_dest = "", n_port = "", n_data = b''):
+    def __init__(self, n_source = "", n_dest = "", n_port = 0, n_data = b''):
         self.src_id = FormatUtils.encode_id(n_source)
         self.dest_id = FormatUtils.encode_id(n_dest)
         self.port = FormatUtils.int_to_bytes(n_port, 1)
@@ -155,11 +155,11 @@ class Packet:
     
     # Get the source ID of this Packet
     def get_source(self) -> str:
-        return FormatUtils.decode_id(self.src_id)
+        return FormatUtils.decode_id(self.src_id).rstrip()
 
     # Get the destination ID of this Packet
     def get_dest(self) -> str:
-        return FormatUtils.decode_id(self.dest_id)
+        return FormatUtils.decode_id(self.dest_id).rstrip()
     
     # Get the source port of this Packet
     def get_port(self) -> int:
@@ -324,8 +324,13 @@ class Packet:
 
     # Save the packet to bytes
     def save(self) -> bytes: 
-        p = self.src_id + self.dest_id + self.port
-        p += self.flags + self.dlen0 + self.dlen1 + self.data
+        p = self.src_id
+        p += self.dest_id
+        p += self.port
+        p += self.flags
+        p += self.dlen0
+        p += self.dlen1
+        p += self.data
         return p
     
     # Load a packet from bytes
@@ -392,19 +397,19 @@ class Packet:
 
 ################################################################################ High-level operations
 class NetworkInterface:
-    def __init__(self, address: str, port: int):
-        self.address = address
+    def __init__(self, id: str, port: int):
+        self.id = id
         self.port = port
         self.ri = RadioInterface()
-        log(0, "Instantiated a NetworkInterface on socket address " + self.address + ":" + str(self.port) + ".")
+        log(0, "Instantiated a NetworkInterface for ID " + self.id + ". (" + str(self.port) + ")")
     
     # Return a Packet with the specified parameters
-    def make_packet(self, data: bytes, dest: str) -> Packet:
-        return Packet(data, self.address, dest, self.port)
+    def make_packet(self, dest: str, data: bytes) -> Packet:
+        return Packet(self.id, dest, self.port, data)
     
     # Send a Packet
     def send_packet(self, p: Packet):
-        log(0, "Sending a Packet addressed to " + p.get_dest() + ":" + str(p.get_port()) + ".")
+        log(0, "Sending a Packet addressed to " + p.get_dest() + ". (" + str(p.get_port()) + ")")
         self.ri.tx(p.save())
     
     # Listen for and return any Packet
@@ -420,14 +425,14 @@ class NetworkInterface:
     
     # Listen for and return a Packet addressed to this interface
     def listen_for_packet(self, timeout=-1) -> Packet: 
-        log(0, "Listening for a Packet addressed to this NetworkInterface (" + self.address + ":" + str(self.port) + ")...")
+        log(0, "Listening for a Packet addressed to this NetworkInterface (" + self.id + ":" + str(self.port) + ")...")
         while True:
             rd = self.ri.rx(timeout)
             if(rd != b''):
                 p = Packet()
                 p.load(rd)
-                if(p.get_dest() == self.address and int(p.get_port()) == int(self.port)):
-                    log(0, "Received a Packet addressed to this NetworkInterface (" + self.address + ":" + str(self.port) + ").")
+                if(p.get_dest() == self.id and int(p.get_port()) == int(self.port)):
+                    log(0, "Received a Packet addressed to this NetworkInterface (" + self.id + ":" + str(self.port) + ").")
                     return p
     
     # Get the integrity of the most recently received Packet
