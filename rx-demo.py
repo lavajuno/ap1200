@@ -1,8 +1,8 @@
 from ap1200 import NetworkInterface
 
 print("AP1200 RX Demo")
-print("Homepage: https://radio.jmeifert.org/ap1200")
-print("Updates: https://github.com/jmeifert/ap1200/releases")
+print("Homepage: https://github.com/lavajuno/ap1200/")
+print("Updates: https://github.com/lavajuno/ap1200/releases")
 print("Enter ID to listen on (BLANK:ANY)")
 this_addr = input(":")
 if(this_addr == ""):

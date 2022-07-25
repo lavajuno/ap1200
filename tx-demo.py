@@ -1,8 +1,8 @@
 from ap1200 import NetworkInterface
 
 print("ap1200 TX Demo")
-print("Homepage: https://radio.jmeifert.org/ap1200")
-print("Updates: https://github.com/jmeifert/ap1200/releases")
+print("Homepage: https://github.com/lavajuno/ap1200/")
+print("Updates: https://github.com/lavajuno/ap1200/releases")
 print("Enter source callsign/ID")
 source_addr = input(":")
 print("Enter source port (0-255)")
