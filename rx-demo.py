@@ -25,7 +25,7 @@ while(True):
     p_source = p.get_source()
     p_dest = p.get_dest()
     p_port = p.get_port()
-    p_flag = p.get_flags()
+    p_flag = p.get_flag()
     p_length = p.get_length()
     p_data = p.get_data()
     p_integrity = round(ni.get_integrity() * 100, 4)

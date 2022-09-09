@@ -22,10 +22,10 @@ LOG_TO_CONSOLE = True
 LOG_TO_FILE = False
 #
 # Where to generate logfile if need be
-LOG_PATH = "adr-cfs.log"
+LOG_PATH = "ap1200.log"
 #
 # How the log identifies which module is logging.
-LOG_PREFIX = "(ADR-CFS)"
+LOG_PREFIX = "(AP1200)"
 
 # Initialize log file if needed
 if(LOG_TO_FILE):
@@ -34,17 +34,17 @@ if(LOG_TO_FILE):
     except:
         pass
     with open(LOG_PATH, "w") as f:
-        f.write(get_date_and_time() + " [INFO] " + LOG_PREFIX + " Logging initialized.\n")
+        f.write(get_date_and_time() + " [  OK  ] " + LOG_PREFIX + " Logging initialized.\n")
 
 def log(level: int, data: str):
     if(level >= LOG_LEVEL):
         output = get_date_and_time()
         if(level == 0):
-            output += " [INFO] "
+            output += " [  OK  ] "
         elif(level == 1):
-            output += " [WARN] "
+            output += " [ WARN ] "
         else:
-            output += " [ERR!] "
+            output += " [ERROR!] "
         output += LOG_PREFIX + " "
         output += data
         if(LOG_TO_FILE):
@@ -55,13 +55,13 @@ def log(level: int, data: str):
 
 ################################################################################ General utilities
 class FormatUtils:
-    # Encode an 8-character ID into a list of bytes
-    def encode_id(id: str) -> list:
+    # Encode an 8-character ID into bytes
+    def encode_id(id: str) -> bytes:
         return '{:<8}'.format(id).encode("ascii")[0:8]
     
-    # Decode an 8-character ID into a list of bytes
-    def decode_id(id: list) -> str:
-        return id.decode("ascii")[0:8]
+    # Decode an 8-character ID into bytes
+    def decode_id(id: bytes) -> str:
+        return id.decode("ascii")[0:8].rstrip()
 
     # int to n bytes
     def int_to_bytes(data: int, n: int) -> bytes: 
@@ -69,7 +69,7 @@ class FormatUtils:
             data = (256 ** n) - 1
         if(data < 0):
             data = 0
-        return data.to_bytes(n, "big") # network endianness
+        return data.to_bytes(n, "big")
 
     # bytes to int
     def bytes_to_int(data: bytes) -> int: 
@@ -97,7 +97,7 @@ class RadioInterface:
         self.transmitter = afskmodem.DigitalTransmitter(afskmodem.DigitalModulationTypes.afsk1200())
         self.integrity = 1
 
-    def rx(self, timeout=-1): # Listen for and catch a transmission, report bit error rate and return data (bytes)
+    def rx(self, timeout=-1) -> bytes: # Listen for and catch a transmission, report bit error rate and return data (bytes)
         rd, te = self.receiver.rx(timeout)
         if(len(rd) > 12): # Only record integrity for transmissions longer than 12 bytes (header is 16 bytes)
             self.integrity = 1 - (te / len(rd))
@@ -115,7 +115,7 @@ class Packet:
         self.src_id = FormatUtils.encode_id(n_source)
         self.dest_id = FormatUtils.encode_id(n_dest)
         self.port = FormatUtils.int_to_bytes(n_port, 1)
-        self.flags = FormatUtils.int_to_bytes(0, 1)
+        self.flag = FormatUtils.int_to_bytes(0, 1)
         self.data = FormatUtils.trim_bytes(n_data, 1024)
         self.dlen0 = bytes([FormatUtils.int_to_bytes(len(self.data), 2)[0]])
         self.dlen1 = bytes([FormatUtils.int_to_bytes(len(self.data), 2)[1]])
@@ -141,9 +141,8 @@ class Packet:
         self.empty = False    
     
     # Set the flag byte of this Packet
-    def set_flag(self, data: str):
-        iv = FormatUtils.bits_to_int(data)
-        self.flags = FormatUtils.int_to_bytes(iv, 1)
+    def set_flag(self, data: int):
+        self.flag = FormatUtils.int_to_bytes(data, 1)
         self.empty = False
     
     # Set the data payload of this Packet
@@ -166,9 +165,8 @@ class Packet:
         return FormatUtils.bytes_to_int(self.port)
 
     # Get the flag byte of this Packet
-    def get_flags(self) -> str:
-        iv = FormatUtils.bytes_to_int(self.flags)
-        return FormatUtils.int_to_bits(iv)
+    def get_flag(self) -> int:
+        return FormatUtils.bytes_to_int(self.flag)
 
     # Get the data payload of this Packet
     def get_data(self) -> bytes:
@@ -178,156 +176,12 @@ class Packet:
     def get_length(self) -> int:
         return FormatUtils.bytes_to_int(self.dlen0 + self.dlen1)
 
-    # Get the GROUP flag on this Packet
-    def is_group_flag(self) -> bool:
-        sf = self.get_flags()
-        if(sf[0] == "1"):
-            return True
-        return False
-    
-    # Set the GROUP flag on this Packet
-    def set_group_flag(self, v: bool):
-        f = self.get_flags()
-        sf = list(f)
-        if(v):
-            sf[0] = "1"
-        else:
-            sf[0] = "0"
-        jf = "".join(sf)
-        self.set_flag(jf)
-    
-    # Get the CHECKSUM flag on this Packet
-    def is_checksum_flag(self) -> bool:
-        sf = self.get_flags()
-        if(sf[1] == "1"):
-            return True
-        return False
-    
-    # Set the CHECKSUM flag on this Packet
-    def set_checksum_flag(self, v: bool):
-        f = self.get_flags()
-        sf = list(f)
-        if(v):
-            sf[1] = "1"
-        else:
-            sf[1] = "0"
-        jf = "".join(sf)
-        self.set_flag(jf)
-    
-    # Get the SIGNATURE flag on this Packet
-    def is_signature_flag(self) -> bool:
-        sf = self.get_flags()
-        if(sf[2] == "1"):
-            return True
-        return False
-    
-    # Set the SIGNATURE flag on this Packet
-    def set_signature_flag(self, v: bool):
-        f = self.get_flags()
-        sf = list(f)
-        if(v):
-            sf[2] = "1"
-        else:
-            sf[2] = "0"
-        jf = "".join(sf)
-        self.set_flag(jf)
-    
-    # Get the KEY flag on this Packet
-    def is_key_flag(self) -> bool:
-        sf = self.get_flags()
-        if(sf[3] == "1"):
-            return True
-        return False
-    
-    # Set the KEY flag on this Packet
-    def set_key_flag(self, v: bool):
-        f = self.get_flags()
-        sf = list(f)
-        if(v):
-            sf[3] = "1"
-        else:
-            sf[3] = "0"
-        jf = "".join(sf)
-        self.set_flag(jf)
-
-    # Get the ENCODING flag on this Packet
-    def is_encoding_flag(self) -> bool:
-        sf = self.get_flags()
-        if(sf[4] == "1"):
-            return True
-        return False
-    
-    # Set the ENCODING flag on this Packet
-    def set_encoding_flag(self, v: bool):
-        f = self.get_flags()
-        sf = list(f)
-        if(v):
-            sf[4] = "1"
-        else:
-            sf[4] = "0"
-        jf = "".join(sf)
-        self.set_flag(jf)
-    
-    # Get the FORMATTING flag on this Packet
-    def is_formatting_flag(self) -> bool:
-        sf = self.get_flags()
-        if(sf[5] == "1"):
-            return True
-        return False
-    
-    # Set the FORMATTING flag on this Packet
-    def set_formatting_flag(self, v: bool):
-        f = self.get_flags()
-        sf = list(f)
-        if(v):
-            sf[5] = "1"
-        else:
-            sf[5] = "0"
-        jf = "".join(sf)
-        self.set_flag(jf)
-    
-    # Get the ENCRYPTION flag on this Packet
-    def is_encryption_flag(self) -> bool:
-        sf = self.get_flags()
-        if(sf[6] == "1"):
-            return True
-        return False
-    
-    # Set the ENCRYPTION flag on this Packet
-    def set_encryption_flag(self, v: bool):
-        f = self.get_flags()
-        sf = list(f)
-        if(v):
-            sf[6] = "1"
-        else:
-            sf[6] = "0"
-        jf = "".join(sf)
-        self.set_flag(jf)
-
-    # Get the SUBHEADER flag on this Packet
-    def is_subheader_flag(self) -> bool:
-        sf = self.get_flags()
-        if(sf[7] == "1"):
-            return True
-        return False
-    
-    # Set the SUBHEADER flag on this Packet
-    def set_subheader_flag(self, v: bool):
-        f = self.get_flags()
-        sf = list(f)
-        if(v):
-            sf[7] = "1"
-        else:
-            sf[7] = "0"
-        jf = "".join(sf)
-        self.set_flag(jf)
-
     # Save the packet to bytes
     def save(self) -> bytes: 
         p = self.src_id
         p += self.dest_id
         p += self.port
-        p += self.flags
+        p += self.flag
         p += self.dlen0
         p += self.dlen1
         p += self.data
@@ -340,7 +194,7 @@ class Packet:
             self.src_id = bdata[0:8]
             self.dest_id = bdata[8:16]
             self.port = bdata[16:17]
-            self.flags = bdata[17:18]
+            self.flag = bdata[17:18]
             self.dlen0 = bdata[18:19]
             self.dlen1 = bdata[19:20]
             dLen = FormatUtils.bytes_to_int(self.dlen0 + self.dlen1)
@@ -350,50 +204,11 @@ class Packet:
             self.src_id = b'        '
             self.dest_id = b'        '
             self.port = FormatUtils.int_to_bytes(0, 1)
-            self.flags = FormatUtils.int_to_bytes(0, 1)
+            self.flag = FormatUtils.int_to_bytes(0, 1)
             self.dlen0 = FormatUtils.int_to_bytes(0, 1)
             self.dlen1 = FormatUtils.int_to_bytes(0, 1)
             dLen = 0
             self.data = b''
-    
-    # Write bytes to build a Packet
-    def __write_raw(self, src_id, dest_id, port, flags, dlen0, dlen1, data):
-        self.src_id = src_id
-        self.dest_id = dest_id
-        self.port = port
-        self.flags = flags
-        self.dlen0 = dlen0
-        self.dlen1 = dlen1
-        self.data = data
-    
-    # Extract grouped packets from their container
-    def get_grouped_packets(self):
-        try:
-            if(not self.is_group_flag()):
-                return []
-            op = []
-            n = 0
-            pd = self.get_data()
-            while(n < len(pd) - 20):
-                log(0, "Reading grouped packet at index " + str(n))
-                gp = Packet() # instantiate a packet and read into it
-                src_id = pd[n:n+8]
-                dest_id = pd[n+8:n+16]
-                port = pd[n+16:n+17]
-                flag = pd[n+17:n+18]
-                dlen0 = pd[n+18:n+19]
-                dlen1 = pd[n+19:n+20]
-                dLen = FormatUtils.bytes_to_int(dlen0 + dlen1)
-                if(n+20+dLen > len(pd)): # do not overflow
-                    break
-                data = pd[n+20:n+20+dLen]
-                gp.__write_raw(src_id, dest_id, port, flag, dlen0, dlen1, data)  # write to packet
-                op.append(gp) # store packet in array
-                n = n + 20 + dLen # next packet
-            return(op)
-        except:
-            log(1, "Failed to extract grouped packets.")
-            return []
 
 ################################################################################ High-level operations
 class NetworkInterface:
