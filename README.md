@@ -8,7 +8,7 @@ A python script implementing AP1200, an asynchronous network-layer protocol for 
 > source_port: (required, int, 0-255) Port
 
 #### Functions:
-> Packet <- make_packet([Data (bytes, len<=1024)], [Dest ID ("12345678")]): Return a Packet with the specified parameters
+> Packet <- make_packet(bytes, str): Return a Packet with the specified parameters (Packet's data and destination ID)
 
 > None <- send_packet([Packet]): Sends a Packet
 
@@ -35,73 +35,24 @@ A python script implementing AP1200, an asynchronous network-layer protocol for 
 
 > int <- get_port(): Get the Packet's port (0-255)
 
-> str <- get_flag(): Get the Packet's flag byte as bits ("00000000")
+> int <- get_flag(): Get the packet's flag
 
 > int <- get_length(): Get the length of the data in the Packet (0-65535)
 
 > bytes <- get_data() : Get the Packet's data
 
-> None <- set_source([ID]): Set the Packet's source ID
+> None <- set_source(str): Set the Packet's source ID "12345678"
 
-> None <- set_dest([ID]): Set the Packet's destination ID
+> None <- set_dest(str): Set the Packet's destination ID "12345678"
 
-> None <- set_port([Port]): Set the Packet's port
+> None <- set_port(int): Set the Packet's port (0-255)
 
-> None <- set_flag([Flag]): Set the Packet's flag byte
-
-> None <- set_data([Data]): Set the Packet's data
-
+> None <- set_flag(int): Set the packet's flag (0-255)
 
 > bytes <- save(): Save the whole packet as bytes
 
-> Packet <- load([Packet as bytes]): Load a packet stored as bytes into a Packet class
+> Packet <- load(bytes): Load a packet stored as bytes into a Packet class
 
-> List(Packet) <- getGroup([Packet]): Returns the packets stored in a GROUP Packet
 
-> None <- set_group_flag(bool)
 
-> None <- set_checksum_flag(bool)
 
-> None <- set_signature_flag(bool)
-
-> None <- set_key_flag(bool)
-
-> None <- set_encoding_flag(bool)
-
-> None <- set_formatting_flag(bool)
-
-> None <- set_encryption_flag(bool)
-
-> None <- set_subheader_flag(bool)
-
-> bool <- get_group_flag()
-
-> bool <- get_checksum_flag()
-
-> bool <- get_signature_flag()
-
-> bool <- get_key_flag()
-
-> bool <- get_encoding_flag()
-
-> bool <- get_formatting_flag()
-
-> bool <- get_encryption_flag()
-
-> bool <- get_subheader_flag()
-
-### FormatUtils:
-#### Functions:
-> bytes <- encode_id([String]): Encodes an ID to bytes
-
-> string <- decode_id([Bytes]): Decodes an ID from bytes (b'12345678')
-
-> bytes <- int_to_bytes([Int], [Number of bytes])
-
-> int <- bytes_to_int([Bytes])
-
-> bytes <- trim_bytes([Bytes], [Max length])
-
-> int <- bits_to_int([Bits as string])
-
-> string <- int_to_bits([Int (0-255)])
