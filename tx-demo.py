@@ -5,7 +5,7 @@ print("Homepage: https://github.com/lavajuno/ap1200/")
 print("Updates: https://github.com/lavajuno/ap1200/releases")
 print("Enter source callsign/ID")
 source_addr = input(":")
-print("Enter source port (0-255)")
+print("Enter port (0-255)")
 port = int(input(":"))
 ni = NetworkInterface(source_addr, port)
 while True:
